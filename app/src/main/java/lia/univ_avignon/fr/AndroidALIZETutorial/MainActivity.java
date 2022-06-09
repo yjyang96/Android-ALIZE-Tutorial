@@ -60,9 +60,14 @@ public class MainActivity extends AppCompatActivity {
             // For some applications, it may make sense to embed pre-built models for some speakers.
             // The most convenient way to distribute such models would be as part of the app assets.
             // Here is an example of how to load an existing model from the assets.
-            InputStream speakerModelAsset = getApplicationContext().getAssets().open("gmm/spk02.gmm");
-            alizeSystem.loadSpeakerModel("spk02",speakerModelAsset);
-            speakerModelAsset.close();
+//            InputStream speakerModelAsset = getApplicationContext().getAssets().open("gmm/spk02.gmm");
+//            alizeSystem.loadSpeakerModel("spk02",speakerModelAsset);
+//            speakerModelAsset.close();
+
+
+            alizeSystem.loadSpeakerModel("spk01","spk01");
+            alizeSystem.loadSpeakerModel("spk02","spk02");
+            alizeSystem.loadSpeakerModel("spk03","spk03");
 
             // Let's check system status.
             displayStatus(alizeSystem);
@@ -80,30 +85,43 @@ public class MainActivity extends AppCompatActivity {
             // This is the method most people would use when recording audio and feeding it to ALIZÉ.
             //
             // Here, we will just simulate recording audio by loading data from the assets into an array of short ints.
-            InputStream audioIS = getApplicationContext().getAssets().open("data/audio1.pcm");
-            ByteArrayOutputStream audioBytes = new ByteArrayOutputStream();
-            while (audioIS.available() > 0) {
-                audioBytes.write(audioIS.read());
-            }
-            byte[] tmpBytes = audioBytes.toByteArray();
-            short[] audioL16Samples = new short[tmpBytes.length/2];
-            ByteBuffer.wrap(tmpBytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(audioL16Samples);
+//            InputStream audioIS = getApplicationContext().getAssets().open("data/audio1.pcm");
+//            ByteArrayOutputStream audioBytes = new ByteArrayOutputStream();
+//            while (audioIS.available() > 0) {
+//                audioBytes.write(audioIS.read());
+//            }
+//            byte[] tmpBytes = audioBytes.toByteArray();
+//            short[] audioL16Samples = new short[tmpBytes.length/2];
+//            ByteBuffer.wrap(tmpBytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(audioL16Samples);
 
             // Then, pass it to ALIZÉ the same way we would for data just recorded with the microphone.
-            alizeSystem.addAudio(audioL16Samples);
+//            alizeSystem.addAudio(audioL16Samples);
 
             // Phase 2: Train a model with the just-added audio
             // Speaker IDs are just free-form strings. It is usually a good idea to keep them simple and store
             // speaker-related metadata, such as names, in a separate, application-managed database.
-            alizeSystem.createSpeakerModel("spk01");
+//            alizeSystem.createSpeakerModel("spk01");
 
             // Let's check system status.
-            displayStatus(alizeSystem);
+//            displayStatus(alizeSystem);
 
             // Phase 3:
             // Reset input, since we will not make any more use of this audio signal.
-            alizeSystem.resetAudio();
-            alizeSystem.resetFeatures();
+//            alizeSystem.resetAudio();
+//            alizeSystem.resetFeatures();
+//
+//            alizeSystem.addAudio(getApplicationContext().getAssets().open("data/audio3.pcm"));
+//            alizeSystem.createSpeakerModel("spk02");
+//            displayStatus(alizeSystem);
+//            alizeSystem.resetAudio();
+//            alizeSystem.resetFeatures();
+//
+//            alizeSystem.addAudio(getApplicationContext().getAssets().open("data/audio4.pcm"));
+//            alizeSystem.createSpeakerModel("spk03");
+//            displayStatus(alizeSystem);
+//            alizeSystem.resetAudio();
+//            alizeSystem.resetFeatures();
+//            displayStatus(alizeSystem);
 
 
             /*==============================*/
@@ -113,15 +131,15 @@ public class MainActivity extends AppCompatActivity {
             // Here, we use the method of SimpleSpkDetSystem that reads directly from an asset input stream.
             // For this approach, the data format in the asset file must match the format specified in the configuration.
             // This method is useful during the development phase of your application, but less likely to be used for real-world usage.
-            alizeSystem.addAudio(getApplicationContext().getAssets().open("data/audio2.pcm"));
+//            alizeSystem.addAudio(getApplicationContext().getAssets().open("data/audio2.pcm"));
 
             // Phase 2: Adapt the model with the just-added audio
-            alizeSystem.adaptSpeakerModel("spk01");
+//            alizeSystem.adaptSpeakerModel("spk01");
 
             // Phase 3:
             // Reset input, since we will not make any more use of this audio signal.
-            alizeSystem.resetAudio();
-            alizeSystem.resetFeatures();
+//            alizeSystem.resetAudio();
+//            alizeSystem.resetFeatures();
 
 
             /*============================*/
@@ -134,8 +152,10 @@ public class MainActivity extends AppCompatActivity {
             // For the second parameter, you can either provide a complete, absolute file path to specify where to save the model.
             // Or you can provide a basename (for example, the same string as the speaker ID), in which case the model will be
             // saved along the other ones at the location (and with the filename extension) specified in the configuration file.
-            alizeSystem.saveSpeakerModel("spk01", "spk01");
-
+//            alizeSystem.saveSpeakerModel("spk01", "spk01");
+//
+//            alizeSystem.saveSpeakerModel("spk02", "spk02");
+//            alizeSystem.saveSpeakerModel("spk03", "spk03");
 
             /*====================================*/
             /*   Verifying a speaker's identity   */
@@ -167,6 +187,26 @@ public class MainActivity extends AppCompatActivity {
             Log.i("ALIZE","  score: " + verificationResult.score);
             Log.i("ALIZE","***********************************************");
 
+
+            verificationResult = alizeSystem.verifySpeaker("spk03");
+
+            Log.i("ALIZE","***********************************************");
+            Log.i("ALIZE","Speaker verification against speaker spk03:");
+            Log.i("ALIZE","  match: " + verificationResult.match);
+            Log.i("ALIZE","  score: " + verificationResult.score);
+            Log.i("ALIZE","***********************************************");
+
+            SpkRecResult identificationResult = alizeSystem.identifySpeaker();
+
+            // Here, the result tells us whether any registered speaker matched the signal,
+            // which one obtained the highest score, and what this score was (even if there was no match).
+            Log.i("ALIZE","***********************************************");
+            Log.i("ALIZE","Speaker identification:");
+            Log.i("ALIZE","  match: " + identificationResult.match);
+            Log.i("ALIZE","  closest speaker: " + identificationResult.speakerId);
+            Log.i("ALIZE","  score: " + identificationResult.score);
+            Log.i("ALIZE","***********************************************");
+
             // Phase 3:
             // Again, once done with this audio signal, clear the input buffers.
             alizeSystem.resetAudio();
@@ -181,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
 
             alizeSystem.addAudio(getApplicationContext().getAssets().open("data/audio4.pcm"));
 
-            SpkRecResult identificationResult = alizeSystem.identifySpeaker();
+            identificationResult = alizeSystem.identifySpeaker();
 
             // Here, the result tells us whether any registered speaker matched the signal,
             // which one obtained the highest score, and what this score was (even if there was no match).
